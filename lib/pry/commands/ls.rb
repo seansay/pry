@@ -1,4 +1,22 @@
 class Pry
+  module Helpers
+    module Formatting
+      def self.tablify(things, screen_width)
+        maximum_width = things.map{|t| Pry::Helpers::Text.strip_color(t).length}.max + Pry.config.ls.separator.length
+        maximum_width = screen_width if maximum_width > screen_width
+        columns = screen_width / maximum_width
+
+        things.each_slice(columns).map do |slice|
+          slice.map do |s|
+            padding_width = maximum_width - Pry::Helpers::Text.strip_color(s).length
+            padding = Pry.config.ls.separator.ljust(padding_width, Pry.config.ls.separator)
+            s + padding
+          end.join("")
+        end.join("\n")
+      end
+    end
+  end
+
   Pry::Commands.create_command "ls" do
     group "Context"
     description "Show the list of vars and methods in the current scope."
@@ -299,17 +317,7 @@ class Pry
       end
 
       screen_width = (TerminalInfo.screen_size || [25, 80])[1]
-      maximum_width = things.map{|t| Pry::Helpers::Text.strip_color(t).length}.max + Pry.config.ls.separator.length
-      maximum_width = screen_width if maximum_width > screen_width
-      columns = screen_width / maximum_width
-
-      things.each_slice(columns).map do |slice|
-        slice.map do |s|
-          padding_width = maximum_width - Pry::Helpers::Text.strip_color(s).length
-          padding = Pry.config.ls.separator.ljust(padding_width, Pry.config.ls.separator)
-          s + padding
-        end.join("")
-      end.join("\n")
+      Pry::Helpers::Formatting.tablify(things, screen_width)
     end
 
     # Color output based on config.ls.*_color
