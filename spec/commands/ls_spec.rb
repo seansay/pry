@@ -33,10 +33,11 @@ describe "ls" do
     def try_round_trip(text)
       text.strip!
       things = text.split(/\s+/)
-      actual = Pry::Helpers::Formatting.tablify(things, FAKE_COLUMNS)
+      actual = Pry::Helpers::Formatting.tablify(things, FAKE_COLUMNS).strip
       if actual != text
-        actual.strip.should == text
-        puts text, 'vs.', actual
+        bar = '-'*25
+        puts bar+'expected'+bar, text, bar+'actual'+bar, actual
+        actual.should == text
       end
     end
 
